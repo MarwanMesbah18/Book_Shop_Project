@@ -6,8 +6,8 @@ public class User {
 	private String password;
 	private String phoneNumber;
 	private String address;
-	private String userType; // "admin" or "user"
-	  
+	private String userType;
+	
 	public String getUserType() {
 		return userType;
 	}

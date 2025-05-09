@@ -30,9 +30,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/main/webapp/WEB-INF/lib/derby (1).jar</name>
+			<name>src/main/webapp/WEB-INF/lib/derby.jar</name>
 			<type>1</type>
-			<location>D:/derby (1).jar</location>
+			<location>/home/mesbah/Downloads/derby.jar</location>
 		</link>
 	</linkedResources>
 </projectDescription>

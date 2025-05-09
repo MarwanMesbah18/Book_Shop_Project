@@ -7,6 +7,14 @@ public class Books {
 		private int quantity;
 		private String genre;
 		
+		public Books(String name, double price, String author, int quantity, String genre) {
+			this.name = name;
+			this.price = price;
+			this.author = author;
+			this.quantity = quantity;
+			this.genre = genre;
+		}
+
 		public String getName() {
 			return name;
 		}
