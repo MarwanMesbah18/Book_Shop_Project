@@ -1,52 +1,189 @@
 package Clasess;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DB {
 
-	public void add_user_table() {
-		try {
-			Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-			
-			Connection con=DriverManager.getConnection("jdbc:derby:db/project;create=true");
-			
-			Statement st=con.createStatement();
-			
-			st.executeUpdate("Create table User (UserName varchar(30), email varchar(50) primary key, password varchar(30), phoneNumber varchar(30), address varchre(30) )");
-			
-			con.close();
-		
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	public int add_user(User u) {
-		int flag=0;
-		
-		try {
-			Connection con=DriverManager.getConnection("jdbc:derby:db/project");
-			
-			PreparedStatement pst=con.prepareStatement("insert into User values(?,?,?,?,?)");
-			pst.setString(1, u.getName());
-			pst.setString(2, u.getEmail());
-			pst.setString(3, u.getPassword());
-			pst.setString(4, u.getPhoneNumber());
-			pst.setString(5, u.getAddress());
-			
-			flag= pst.executeUpdate();
-			con.close();
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return flag;
-		
-		
-	}
-	
+    private static final String DB_URL = "jdbc:derby:db/CCIT2;create=true";
+    private static final String DB_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+
+    public void resetDatabase() {
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                try {
+                    Statement st = con.createStatement();
+                    st.executeUpdate("DROP TABLE USERS");
+                    System.out.println("USERS table dropped successfully");
+                } catch (SQLException e) {
+                    // Table might not exist, that's okay
+                    System.out.println("Note: USERS table did not exist or could not be dropped");
+                }
+                
+                try {
+                    Statement st = con.createStatement();
+                    st.executeUpdate("DROP TABLE BOOKS");
+                    System.out.println("BOOKS table dropped successfully");
+                } catch (SQLException e) {
+                    System.out.println("Note: BOOKS table did not exist or could not be dropped");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void add_user_table() {
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                Statement st = con.createStatement();
+                st.executeUpdate("CREATE TABLE USERS (username VARCHAR(30) PRIMARY KEY, " +
+                                "email VARCHAR(50), password VARCHAR(30), phoneNumber VARCHAR(30), " + 
+                                "address VARCHAR(30), userType VARCHAR(30))");
+                System.out.println("USERS table created successfully");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void add_books_table() {
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                Statement st = con.createStatement();
+                st.executeUpdate("CREATE TABLE BOOKS (name VARCHAR(100) PRIMARY KEY, " +
+                                "price DOUBLE, author VARCHAR(50), quantity INTEGER, " + 
+                                "genre VARCHAR(30))");
+                System.out.println("BOOKS table created successfully");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int add_user(User u) {
+        int flag = 0;
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                try (PreparedStatement pst = con.prepareStatement("INSERT INTO USERS VALUES(?,?,?,?,?,?)")) {
+                    pst.setString(1, u.getUsername());
+                    pst.setString(2, u.getEmail());
+                    pst.setString(3, u.getPassword());
+                    pst.setString(4, u.getPhoneNumber());
+                    pst.setString(5, u.getAddress());
+                    pst.setString(6, u.getUserType());
+                    
+                    flag = pst.executeUpdate();
+                    System.out.println("User added successfully: " + u.getUsername());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return flag;
+    }
+    
+    public static int add_book(Books book) {
+        int flag = 0;
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                try (PreparedStatement pst = con.prepareStatement("INSERT INTO BOOKS VALUES(?,?,?,?,?)")) {
+                    pst.setString(1, book.getName());
+                    pst.setDouble(2, book.getPrice());
+                    pst.setString(3, book.getAuthor());
+                    pst.setInt(4, book.getQuantity());
+                    pst.setString(5, book.getGenre());
+                    
+                    flag = pst.executeUpdate();
+                    System.out.println("Book added successfully: " + book.getName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return flag;
+    }
+    
+    public static List<Books> getAllBooks() {
+        List<Books> booksList = new ArrayList<>();
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                try (Statement st = con.createStatement();
+                     ResultSet rs = st.executeQuery("SELECT * FROM BOOKS")) {
+                    
+                    while (rs.next()) {
+                        Books book = new Books();
+                        book.setName(rs.getString("name"));
+                        book.setPrice(rs.getDouble("price"));
+                        book.setAuthor(rs.getString("author"));
+                        book.setQuantity(rs.getInt("quantity"));
+                        book.setGenre(rs.getString("genre"));
+                        booksList.add(book);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return booksList;
+    }
+
+    public User verifyLogin(String username, String password) {
+        User user = null;
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL);
+                 PreparedStatement pst = con.prepareStatement(
+                     "SELECT * FROM USERS WHERE username=? AND password=?")) {
+                
+                pst.setString(1, username);
+                pst.setString(2, password);
+                
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        user = new User();
+                        user.setUsername(rs.getString("username"));
+                        user.setEmail(rs.getString("email"));
+                        user.setPassword(rs.getString("password"));
+                        user.setPhoneNumber(rs.getString("phoneNumber"));
+                        user.setAddress(rs.getString("address"));
+                        user.setUserType(rs.getString("userType"));
+                        System.out.println("User login successful: " + username);
+                    } else {
+                        System.out.println("Login failed for: " + username);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+    
+    public static boolean updateBookQuantity(String bookName, int newQuantity) {
+        boolean success = false;
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL);
+                 PreparedStatement pst = con.prepareStatement(
+                     "UPDATE BOOKS SET quantity=? WHERE name=?")) {
+                
+                pst.setInt(1, newQuantity);
+                pst.setString(2, bookName);
+                
+                int rowsAffected = pst.executeUpdate();
+                success = (rowsAffected > 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return success;
+    }
 }
