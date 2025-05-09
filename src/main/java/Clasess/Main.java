@@ -20,6 +20,7 @@ public class Main {
         user.setUserType("user");
         DB.add_user(user);
         
+        
         // Add an admin user
         User admin = new User();
         admin.setUsername("admin");
@@ -40,5 +41,8 @@ public class Main {
         DB.add_book(book3);
         
         System.out.println("Database initialized with users and books");
+        db.printAllUsers();
+        boolean i = db.verifyLogin("user1", "12345678");
+        System.out.println("User login verification: " + i);
     }
 }

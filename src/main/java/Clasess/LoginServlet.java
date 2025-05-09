@@ -11,23 +11,23 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Get form parameters
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        
-        // Verify credentials
+
+        // Verify credentials and retrieve user
         DB db = new DB();
-        User user = db.verifyLogin(username, password);
-        
+        User user = db.getUserByCredentials(username, password);
+
         if (user != null) {
             // Successful login - store user in session
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
-            
-            // Redirect to appropriate page based on user type
+
+            // Redirect based on user type
             if ("admin".equals(user.getUserType())) {
                 response.sendRedirect("admin.jsp");
             } else {

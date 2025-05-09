@@ -18,10 +18,9 @@ public class DB {
                     st.executeUpdate("DROP TABLE USERS");
                     System.out.println("USERS table dropped successfully");
                 } catch (SQLException e) {
-                    // Table might not exist, that's okay
                     System.out.println("Note: USERS table did not exist or could not be dropped");
                 }
-                
+
                 try {
                     Statement st = con.createStatement();
                     st.executeUpdate("DROP TABLE BOOKS");
@@ -41,7 +40,7 @@ public class DB {
             try (Connection con = DriverManager.getConnection(DB_URL)) {
                 Statement st = con.createStatement();
                 st.executeUpdate("CREATE TABLE USERS (username VARCHAR(30) PRIMARY KEY, " +
-                                "email VARCHAR(50), password VARCHAR(30), phoneNumber VARCHAR(30), " + 
+                                "email VARCHAR(50), password VARCHAR(30), phoneNumber VARCHAR(30), " +
                                 "address VARCHAR(30), userType VARCHAR(30))");
                 System.out.println("USERS table created successfully");
             }
@@ -49,14 +48,14 @@ public class DB {
             e.printStackTrace();
         }
     }
-    
+
     public void add_books_table() {
         try {
             Class.forName(DB_DRIVER);
             try (Connection con = DriverManager.getConnection(DB_URL)) {
                 Statement st = con.createStatement();
                 st.executeUpdate("CREATE TABLE BOOKS (name VARCHAR(100) PRIMARY KEY, " +
-                                "price DOUBLE, author VARCHAR(50), quantity INTEGER, " + 
+                                "price DOUBLE, author VARCHAR(50), quantity INTEGER, " +
                                 "genre VARCHAR(30))");
                 System.out.println("BOOKS table created successfully");
             }
@@ -77,7 +76,7 @@ public class DB {
                     pst.setString(4, u.getPhoneNumber());
                     pst.setString(5, u.getAddress());
                     pst.setString(6, u.getUserType());
-                    
+
                     flag = pst.executeUpdate();
                     System.out.println("User added successfully: " + u.getUsername());
                 }
@@ -87,7 +86,7 @@ public class DB {
         }
         return flag;
     }
-    
+
     public static int add_book(Books book) {
         int flag = 0;
         try {
@@ -99,7 +98,7 @@ public class DB {
                     pst.setString(3, book.getAuthor());
                     pst.setInt(4, book.getQuantity());
                     pst.setString(5, book.getGenre());
-                    
+
                     flag = pst.executeUpdate();
                     System.out.println("Book added successfully: " + book.getName());
                 }
@@ -109,7 +108,7 @@ public class DB {
         }
         return flag;
     }
-    
+
     public static List<Books> getAllBooks() {
         List<Books> booksList = new ArrayList<>();
         try {
@@ -117,7 +116,7 @@ public class DB {
             try (Connection con = DriverManager.getConnection(DB_URL)) {
                 try (Statement st = con.createStatement();
                      ResultSet rs = st.executeQuery("SELECT * FROM BOOKS")) {
-                    
+
                     while (rs.next()) {
                         Books book = new Books();
                         book.setName(rs.getString("name"));
@@ -135,17 +134,80 @@ public class DB {
         return booksList;
     }
 
-    public User verifyLogin(String username, String password) {
+    public boolean verifyLogin(String username, String password) {
+        boolean isValid = false;
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL);
+                 PreparedStatement pst = con.prepareStatement(
+                         "SELECT * FROM USERS WHERE username=? AND password=?")) {
+
+                pst.setString(1, username);
+                pst.setString(2, password);
+
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        isValid = true;      
+                    } 
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isValid;
+    }
+
+    public static boolean updateBookQuantity(String bookName, int newQuantity) {
+        boolean success = false;
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL);
+                 PreparedStatement pst = con.prepareStatement(
+                         "UPDATE BOOKS SET quantity=? WHERE name=?")) {
+
+                pst.setInt(1, newQuantity);
+                pst.setString(2, bookName);
+
+                int rowsAffected = pst.executeUpdate();
+                success = (rowsAffected > 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return success;
+    }
+    
+    public static void printAllUsers() {
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL);
+                 Statement st = con.createStatement();
+                 ResultSet rs = st.executeQuery("SELECT * FROM USERS")) {
+
+                System.out.println("Current Users in Database:");
+                while (rs.next()) {
+                    System.out.println("Username: " + rs.getString("username") +
+                                       ", Email: " + rs.getString("email") +
+                                       ", Password: " + rs.getString("password") +
+                                       ", UserType: " + rs.getString("userType"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public User getUserByCredentials(String username, String password) {
         User user = null;
         try {
             Class.forName(DB_DRIVER);
             try (Connection con = DriverManager.getConnection(DB_URL);
                  PreparedStatement pst = con.prepareStatement(
-                     "SELECT * FROM USERS WHERE username=? AND password=?")) {
-                
+                         "SELECT * FROM USERS WHERE username=? AND password=?")) {
+
                 pst.setString(1, username);
                 pst.setString(2, password);
-                
+
                 try (ResultSet rs = pst.executeQuery()) {
                     if (rs.next()) {
                         user = new User();
@@ -155,9 +217,6 @@ public class DB {
                         user.setPhoneNumber(rs.getString("phoneNumber"));
                         user.setAddress(rs.getString("address"));
                         user.setUserType(rs.getString("userType"));
-                        System.out.println("User login successful: " + username);
-                    } else {
-                        System.out.println("Login failed for: " + username);
                     }
                 }
             }
@@ -166,24 +225,5 @@ public class DB {
         }
         return user;
     }
-    
-    public static boolean updateBookQuantity(String bookName, int newQuantity) {
-        boolean success = false;
-        try {
-            Class.forName(DB_DRIVER);
-            try (Connection con = DriverManager.getConnection(DB_URL);
-                 PreparedStatement pst = con.prepareStatement(
-                     "UPDATE BOOKS SET quantity=? WHERE name=?")) {
-                
-                pst.setInt(1, newQuantity);
-                pst.setString(2, bookName);
-                
-                int rowsAffected = pst.executeUpdate();
-                success = (rowsAffected > 0);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return success;
-    }
+
 }
