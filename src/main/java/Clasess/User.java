@@ -6,15 +6,36 @@ public class User {
 	private String password;
 	private String phoneNumber;
 	private String address;
-	
-	public User(String name, String email, String password, String phoneNumber, String address) {
+	private String userType; // "admin" or "user"
+	  
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
+
+	public void setName(String name) {
 		this.name = name;
+	}
+
+	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
+	}
+
+	public void setAddress(String address) {
 		this.address = address;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
