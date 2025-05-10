@@ -6,7 +6,7 @@ import java.util.List;
 
 public class DB {
 
-    private static final String DB_URL = "jdbc:derby:db/CCIT2;create=true";
+	private static final String DB_URL = "jdbc:derby:" + System.getProperty("user.home") + "/bookshop_db;create=true";
     private static final String DB_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
 
     public void resetDatabase() {
@@ -177,25 +177,25 @@ public class DB {
         return success;
     }
     
-    public static void printAllUsers() {
+    public static void listAllUsers() {
         try {
             Class.forName(DB_DRIVER);
             try (Connection con = DriverManager.getConnection(DB_URL);
-                 Statement st = con.createStatement();
-                 ResultSet rs = st.executeQuery("SELECT * FROM USERS")) {
-
-                System.out.println("Current Users in Database:");
+                 Statement stmt = con.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT * FROM USERS")) {
+                
+                System.out.println("All users in database:");
                 while (rs.next()) {
-                    System.out.println("Username: " + rs.getString("username") +
-                                       ", Email: " + rs.getString("email") +
-                                       ", Password: " + rs.getString("password") +
-                                       ", UserType: " + rs.getString("userType"));
+                    System.out.println("Username: " + rs.getString("username") + 
+                                       ", Password: " + rs.getString("password") + 
+                                       ", Type: " + rs.getString("userType"));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     
     public User getUserByCredentials(String username, String password) {
         User user = null;
@@ -203,10 +203,11 @@ public class DB {
             Class.forName(DB_DRIVER);
             try (Connection con = DriverManager.getConnection(DB_URL);
                  PreparedStatement pst = con.prepareStatement(
-                         "SELECT * FROM USERS WHERE username=? AND password=?")) {
+                     "SELECT * FROM USERS WHERE username=? AND password=?")) {
 
                 pst.setString(1, username);
                 pst.setString(2, password);
+                System.out.println("Trying login with: " + username + ", " + password);
 
                 try (ResultSet rs = pst.executeQuery()) {
                     if (rs.next()) {
@@ -217,13 +218,18 @@ public class DB {
                         user.setPhoneNumber(rs.getString("phoneNumber"));
                         user.setAddress(rs.getString("address"));
                         user.setUserType(rs.getString("userType"));
+                        System.out.println("User found in database");
+                    } else {
+                        System.out.println("No user found with these credentials");
                     }
                 }
             }
         } catch (Exception e) {
+            System.out.println("Error during login: " + e.getMessage());
             e.printStackTrace();
         }
         return user;
     }
+
 
 }
