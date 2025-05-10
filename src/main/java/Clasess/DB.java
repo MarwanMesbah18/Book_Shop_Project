@@ -6,8 +6,18 @@ import java.util.List;
 
 public class DB {
 
-	private static final String DB_URL = "jdbc:derby:" + System.getProperty("user.home") + "/bookshop_db;create=true";
+	   // Use a fixed path that will be consistent between Main.java and Tomcat
+    private static final String DB_PATH = System.getProperty("catalina.base") != null ?
+            System.getProperty("catalina.base") + "/bookshop_db" :
+            System.getProperty("user.home") + "/bookshop_db";
+    
+    private static final String DB_URL = "jdbc:derby:" + DB_PATH + ";create=true";
     private static final String DB_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+    
+    static {
+        // Print DB path for debugging
+        System.out.println("Database location being used: " + DB_PATH);
+    }
 
     public void resetDatabase() {
         try {

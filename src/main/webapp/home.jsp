@@ -1,6 +1,6 @@
-<!-- filepath: /home/mesbah/Desktop/JAVAEE/Book_Shop/src/main/webapp/home.jsp -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="Clasess.User, Clasess.Books, Clasess.DB, java.util.List" %>
+<%@ page import="Clasess.User, Clasess.Books, Clasess.DB, Clasess.ShoppingCart, java.util.List, java.util.HashSet" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -80,9 +80,38 @@
         cursor: pointer;
         font-size: 16px;
     }
+    .filter-form {
+        background-color: white;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .filter-form select {
+        padding: 8px;
+        margin-right: 10px;
+        border-radius: 3px;
+        border: 1px solid #ddd;
+    }
+    .filter-button {
+        padding: 8px 15px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
+<%
+    List<Books> debugBooks = DB.getAllBooks();
+    out.println("<!-- DEBUG: Found " + debugBooks.size() + " books in database -->");
+    for (Books b : debugBooks) {
+        out.println("<!-- Book: " + b.getName() + ", Genre: " + b.getGenre() + " -->");
+    }
+%>
+
 <%
     User user = (User) session.getAttribute("user");
     if (user == null) {
@@ -93,11 +122,24 @@
     
     // Get all books from database
     List<Books> booksList = DB.getAllBooks();
+    
+    // Get selected genre for filtering
+    String selectedGenre = request.getParameter("genre");
+    
+    // Get all unique genres for the filter dropdown
+    HashSet<String> genres = new HashSet<>();
+    for (Books book : booksList) {
+        genres.add(book.getGenre());
+    }
 %>
 
 <div class="header">
     <h1>Book Shop</h1>
     <div class="user-info">
+        <a href="cart.jsp" style="color: white; margin-right: 15px;">
+            View Cart (<%= session.getAttribute("cart") != null ? 
+                     ((ShoppingCart)session.getAttribute("cart")).getTotalQuantity() : 0 %>)
+        </a>
         Welcome, <%= user.getUsername() %>! | 
         <form class="logout-form" action="LogoutServlet" method="post">
             <button type="submit" class="logout-btn">Logout</button>
@@ -108,9 +150,27 @@
 <div class="container">
     <h2>Available Books</h2>
     
+    <!-- Genre filter -->
+    <div class="filter-form">
+        <form action="home.jsp" method="get">
+            <label for="genre">Filter by Genre:</label>
+            <select name="genre" id="genre">
+                <option value="">All Genres</option>
+                <% for (String genre : genres) { %>
+                <option value="<%= genre %>" <%= genre.equals(selectedGenre) ? "selected" : "" %>><%= genre %></option>
+                <% } %>
+            </select>
+            <button type="submit" class="filter-button">Filter</button>
+        </form>
+    </div>
+    
     <div class="book-container">
-    <% if(booksList != null && !booksList.isEmpty()) {
-           for(Books book : booksList) { %>
+    <% 
+    if(booksList != null && !booksList.isEmpty()) {
+        for(Books book : booksList) {
+            // Apply genre filter
+            if (selectedGenre == null || selectedGenre.isEmpty() || selectedGenre.equals(book.getGenre())) {
+    %>
         <div class="book-card">
             <div class="book-title"><%= book.getName() %></div>
             <div class="book-author">by <%= book.getAuthor() %></div>
@@ -125,8 +185,11 @@
                 <span style="color: red;">Out of Stock</span>
             <% } %>
         </div>
-    <% }
-       } else { %>
+    <% 
+            }
+        }
+    } else { 
+    %>
         <p>No books available at the moment.</p>
     <% } %>
     </div>

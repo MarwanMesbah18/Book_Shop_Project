@@ -1,30 +1,19 @@
 package Clasess;
 
-import java.io.File;
 import java.util.List;
 
-public class Main {
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 
-    public static void main(String[] args) {
-        System.out.println("Starting database initialization...");
-        String dbPath = System.getProperty("user.home") + "/bookshop_db";
-        System.out.println("Database location: " + dbPath);
+@WebListener
+public class DatabaseInitializer implements ServletContextListener {
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        System.out.println("Initializing database for web application...");
         
-        // Delete the entire database directory first
-        try {
-            File dbDir = new File(dbPath);
-            if (dbDir.exists()) {
-                System.out.println("Deleting existing database files...");
-                deleteDirectory(dbDir);
-                System.out.println("Existing database files deleted successfully");
-            }
-        } catch (Exception e) {
-            System.out.println("Warning: Could not fully delete database directory: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        // Create a fresh instance of DB
-        DB db = new DB();
+DB db = new DB();
         
         try {
             // Setup database tables
@@ -106,22 +95,6 @@ public class Main {
             System.out.println("Error during database initialization: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-    
-    // Helper method to recursively delete a directory
-    private static void deleteDirectory(File directory) {
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        deleteDirectory(file);
-                    } else {
-                        file.delete();
-                    }
-                }
-            }
-            directory.delete();
-        }
+
     }
 }
