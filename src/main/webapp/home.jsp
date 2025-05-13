@@ -127,10 +127,25 @@
     String selectedGenre = request.getParameter("genre");
     
     // Get all unique genres for the filter dropdown
-    HashSet<String> genres = new HashSet<>();
-    for (Books book : booksList) {
-        genres.add(book.getGenre());
-    }
+   // Get all unique genres for the filter dropdown
+HashSet<String> genres = new HashSet<>();
+// Add all possible genres first
+genres.add("Fiction");
+genres.add("Fantasy");
+genres.add("Classic");
+genres.add("Mystery");
+genres.add("Adventure");
+genres.add("Non-Fiction");
+genres.add("Science Fiction");
+genres.add("Romance");
+genres.add("Horror");
+genres.add("Biography");
+
+// Then add any from books (though this is redundant now)
+for (Books book : booksList) {
+    genres.add(book.getGenre());
+}
+
 %>
 
 <div class="header">
@@ -150,49 +165,71 @@
 <div class="container">
     <h2>Available Books</h2>
     
-    <!-- Genre filter -->
-    <div class="filter-form">
-        <form action="home.jsp" method="get">
-            <label for="genre">Filter by Genre:</label>
-            <select name="genre" id="genre">
-                <option value="">All Genres</option>
-                <% for (String genre : genres) { %>
-                <option value="<%= genre %>" <%= genre.equals(selectedGenre) ? "selected" : "" %>><%= genre %></option>
-                <% } %>
-            </select>
-            <button type="submit" class="filter-button">Filter</button>
-        </form>
-    </div>
-    
-    <div class="book-container">
-    <% 
-    if(booksList != null && !booksList.isEmpty()) {
-        for(Books book : booksList) {
-            // Apply genre filter
-            if (selectedGenre == null || selectedGenre.isEmpty() || selectedGenre.equals(book.getGenre())) {
-    %>
-        <div class="book-card">
-            <div class="book-title"><%= book.getName() %></div>
-            <div class="book-author">by <%= book.getAuthor() %></div>
-            <div class="book-genre"><%= book.getGenre() %></div>
-            <div class="book-price">$<%= String.format("%.2f", book.getPrice()) %></div>
-            <% if(book.getQuantity() > 0) { %>
-                <form action="AddToCartServlet" method="post">
-                    <input type="hidden" name="bookName" value="<%= book.getName() %>">
-                    <button type="submit" class="add-to-cart">Add to Cart</button>
-                </form>
-            <% } else { %>
-                <span style="color: red;">Out of Stock</span>
-            <% } %>
+    <!-- Genre and search filter -->
+<div class="filter-form">
+    <form action="home.jsp" method="get">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <div>
+                <label for="genre">Filter by Genre:</label>
+                <select name="genre" id="genre">
+                    <option value="">All Genres</option>
+                    <% for (String genre : genres) { %>
+                    <option value="<%= genre %>" <%= genre.equals(selectedGenre) ? "selected" : "" %>><%= genre %></option>
+                    <% } %>
+                </select>
+            </div>
+            
+            <div>
+                <label for="search">Search:</label>
+                <input type="text" id="search" name="search" placeholder="Search by title or author" 
+                       value="<%= request.getParameter("search") != null ? request.getParameter("search") : "" %>" 
+                       style="padding: 8px; border-radius: 3px; border: 1px solid #ddd; width: 250px;">
+            </div>
+            
+            <button type="submit" class="filter-button">Apply Filters</button>
         </div>
-    <% 
-            }
-        }
-    } else { 
-    %>
-        <p>No books available at the moment.</p>
-    <% } %>
+    </form>
+</div>
+
+    
+<div class="book-container">
+<% 
+if(booksList != null && !booksList.isEmpty()) {
+    String searchQuery = request.getParameter("search");
+    searchQuery = (searchQuery != null) ? searchQuery.toLowerCase() : "";
+    
+    for(Books book : booksList) {
+        // Apply genre filter and search filter
+        boolean matchesGenre = selectedGenre == null || selectedGenre.isEmpty() || selectedGenre.equals(book.getGenre());
+        boolean matchesSearch = searchQuery.isEmpty() || 
+                               book.getName().toLowerCase().contains(searchQuery) || 
+                               book.getAuthor().toLowerCase().contains(searchQuery);
+        
+        if (matchesGenre && matchesSearch) {
+%>
+    <div class="book-card">
+        <div class="book-title"><%= book.getName() %></div>
+        <div class="book-author">by <%= book.getAuthor() %></div>
+        <div class="book-genre"><%= book.getGenre() %></div>
+        <div class="book-price">$<%= String.format("%.2f", book.getPrice()) %></div>
+        <% if(book.getQuantity() > 0) { %>
+            <form action="AddToCartServlet" method="post">
+                <input type="hidden" name="bookName" value="<%= book.getName() %>">
+                <button type="submit" class="add-to-cart">Add to Cart</button>
+            </form>
+        <% } else { %>
+            <span style="color: red;">Out of Stock</span>
+        <% } %>
     </div>
+<% 
+        }
+    }
+} else { 
+%>
+    <p>No books available at the moment.</p>
+<% } %>
+</div>
+
 </div>
 
 </body>

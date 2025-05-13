@@ -240,6 +240,32 @@ public class DB {
         }
         return user;
     }
+    
+    public static List<User> getAllUsers() {
+        List<User> usersList = new ArrayList<>();
+        try {
+            Class.forName(DB_DRIVER);
+            try (Connection con = DriverManager.getConnection(DB_URL)) {
+                try (Statement st = con.createStatement();
+                     ResultSet rs = st.executeQuery("SELECT * FROM USERS")) {
+
+                    while (rs.next()) {
+                        User user = new User();
+                        user.setUsername(rs.getString("username"));
+                        user.setEmail(rs.getString("email"));
+                        user.setPassword(rs.getString("password"));
+                        user.setPhoneNumber(rs.getString("phoneNumber"));
+                        user.setAddress(rs.getString("address"));
+                        user.setUserType(rs.getString("userType"));
+                        usersList.add(user);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return usersList;
+    }
 
 
 }

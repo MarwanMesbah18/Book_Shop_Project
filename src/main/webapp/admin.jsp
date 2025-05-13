@@ -136,7 +136,6 @@
 <div class="header">
     <h1>Admin Panel</h1>
     <div>
-        Welcome, <%= user.getUsername() %>! | 
         <form class="logout-form" action="LogoutServlet" method="post">
             <button type="submit" class="logout-btn">Logout</button>
         </form>
@@ -176,9 +175,22 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="genre">Genre:</label>
-                    <input type="text" id="genre" name="genre" required>
-                </div>
+    <label for="genre">Genre:</label>
+    <select id="genre" name="genre" required class="form-control">
+        <option value="">Select a Genre</option>
+        <option value="Fiction">Fiction</option>
+        <option value="Fantasy">Fantasy</option>
+        <option value="Classic">Classic</option>
+        <option value="Mystery">Mystery</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Non-Fiction">Non-Fiction</option>
+        <option value="Science Fiction">Science Fiction</option>
+        <option value="Romance">Romance</option>
+        <option value="Horror">Horror</option>
+        <option value="Biography">Biography</option>
+    </select>
+</div>
+
                 
                 <button type="submit" class="submit-btn">Add Book</button>
             </form>
@@ -222,11 +234,48 @@
         </table>
     </div>
     
-    <div id="users-tab" class="tab-content">
-        <h2>User Management</h2>
-        <!-- User management functionality would go here -->
-        <p>User management functionality is under development.</p>
-    </div>
+<div id="users-tab" class="tab-content">
+    <h2>User Management</h2>
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>User Type</th>
+            <th>Actions</th>
+        </tr>
+        <% 
+        List<User> usersList = DB.getAllUsers();
+        if(usersList != null && !usersList.isEmpty()) {
+            for(User u : usersList) {
+        %>
+        <tr>
+            <td><%= u.getUsername() %></td>
+            <td><%= u.getEmail() %></td>
+            <td><%= u.getPhoneNumber() %></td>
+            <td><%= u.getAddress() %></td>
+            <td><%= u.getUserType() %></td>
+            <td>
+                <form action="EditUserServlet" method="get" style="display:inline;">
+                    <input type="hidden" name="username" value="<%= u.getUsername() %>">
+                    <button type="submit" class="action-btn">Edit</button>
+                </form>
+                <form action="DeleteUserServlet" method="post" style="display:inline;">
+                    <input type="hidden" name="username" value="<%= u.getUsername() %>">
+                    <button type="submit" class="action-btn delete-btn">Delete</button>
+                </form>
+            </td>
+        </tr>
+        <% }
+        } else { %>
+        <tr>
+            <td colspan="6">No users available.</td>
+        </tr>
+        <% } %>
+    </table>
+</div>
+
 </div>
 
 <script>
