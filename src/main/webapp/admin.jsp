@@ -1,10 +1,10 @@
-<!-- filepath: /home/mesbah/Desktop/JAVAEE/Book_Shop/src/main/webapp/admin.jsp -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="Clasess.User, Clasess.Books, Clasess.DB, java.util.List" %>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book Shop - Admin Panel</title>
 <style>
     body {
@@ -60,13 +60,6 @@
     .action-btn:hover {
         opacity: 0.8;
     }
-    .add-form {
-        background-color: white;
-        padding: 20px;
-        border-radius: 5px;
-        margin-top: 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
     .form-group {
         margin-bottom: 15px;
     }
@@ -74,10 +67,12 @@
         display: block;
         margin-bottom: 5px;
     }
-    .form-group input {
+    .form-group input, .form-group select {
         width: 100%;
         padding: 8px;
         box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 3px;
     }
     .submit-btn {
         background-color: #4CAF50;
@@ -86,6 +81,7 @@
         padding: 10px 15px;
         cursor: pointer;
         font-size: 16px;
+        border-radius: 3px;
     }
     .tabs {
         display: flex;
@@ -118,6 +114,42 @@
         cursor: pointer;
         font-size: 16px;
     }
+    .search-container {
+        margin: 20px 0;
+        display: flex;
+    }
+    .search-input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+    }
+    .search-btn {
+        background-color: #555;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        cursor: pointer;
+        margin-left: 5px;
+    }
+    @media screen and (max-width: 768px) {
+        .tabs {
+            flex-direction: column;
+        }
+        .tab {
+            margin-right: 0;
+            margin-bottom: 5px;
+        }
+    }
+    .add-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 15px;
+        text-decoration: none;
+        border-radius: 3px;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
 </style>
 </head>
 <body>
@@ -131,12 +163,18 @@
     
     // Get all books from database
     List<Books> booksList = DB.getAllBooks();
+    
+    // Get search parameters
+    String bookSearch = request.getParameter("bookSearch");
+    if (bookSearch == null) bookSearch = "";
+    
+    String userSearch = request.getParameter("userSearch");
+    if (userSearch == null) userSearch = "";
 %>
 
 <div class="header">
     <h1>Admin Panel</h1>
     <div>
-        Welcome, <%= user.getUsername() %>! | 
         <form class="logout-form" action="LogoutServlet" method="post">
             <button type="submit" class="logout-btn">Logout</button>
         </form>
@@ -152,40 +190,19 @@
     <div id="books-tab" class="tab-content active">
         <h2>Book Management</h2>
         
-        <div class="add-form">
-            <h3>Add New Book</h3>
-            <form action="AddBookServlet" method="post">
-                <div class="form-group">
-                    <label for="name">Book Title:</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="author">Author:</label>
-                    <input type="text" id="author" name="author" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="price">Price:</label>
-                    <input type="number" id="price" name="price" step="0.01" min="0" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" id="quantity" name="quantity" min="0" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="genre">Genre:</label>
-                    <input type="text" id="genre" name="genre" required>
-                </div>
-                
-                <button type="submit" class="submit-btn">Add Book</button>
-            </form>
+        <!-- Search books -->
+        <div class="search-container">
+            <input type="text" id="bookSearchInput" class="search-input" placeholder="Search books..." 
+                   value="<%= bookSearch %>" oninput="filterBooks()">
+            <button class="search-btn" onclick="filterBooks()">Search</button>
+        </div>
+        
+        <div>
+            <a href="add_book.jsp" class="add-btn">Add New Book</a>
         </div>
         
         <h3>Current Books</h3>
-        <table>
+        <table id="booksTable">
             <tr>
                 <th>Title</th>
                 <th>Author</th>
@@ -207,7 +224,8 @@
                         <input type="hidden" name="bookName" value="<%= book.getName() %>">
                         <button type="submit" class="action-btn">Edit</button>
                     </form>
-                    <form action="DeleteBookServlet" method="post" style="display:inline;">
+                    <form action="DeleteBookServlet" method="post" style="display:inline;" 
+                          onsubmit="return confirmDelete('book', '<%= book.getName() %>')">
                         <input type="hidden" name="bookName" value="<%= book.getName() %>">
                         <button type="submit" class="action-btn delete-btn">Delete</button>
                     </form>
@@ -224,8 +242,59 @@
     
     <div id="users-tab" class="tab-content">
         <h2>User Management</h2>
-        <!-- User management functionality would go here -->
-        <p>User management functionality is under development.</p>
+        
+        <!-- Search users -->
+        <div class="search-container">
+            <input type="text" id="userSearchInput" class="search-input" placeholder="Search users..." 
+                   value="<%= userSearch %>" oninput="filterUsers()">
+            <button class="search-btn" onclick="filterUsers()">Search</button>
+        </div>
+        
+        <div>
+            <a href="add_user.jsp" class="add-btn">Add New User</a>
+        </div>
+        
+        <table id="usersTable">
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>User Type</th>
+                <th>Actions</th>
+            </tr>
+            <% 
+            List<User> usersList = DB.getAllUsers();
+            if(usersList != null && !usersList.isEmpty()) {
+                for(User u : usersList) {
+            %>
+            <tr>
+                <td><%= u.getUsername() %></td>
+                <td><%= u.getEmail() %></td>
+                <td><%= u.getPhoneNumber() %></td>
+                <td><%= u.getAddress() %></td>
+                <td><%= u.getUserType() %></td>
+                <td>
+                    <form action="EditUserServlet" method="get" style="display:inline;">
+                        <input type="hidden" name="username" value="<%= u.getUsername() %>">
+                        <button type="submit" class="action-btn">Edit</button>
+                    </form>
+                    <form action="DeleteUserServlet" method="post" style="display:inline;" 
+                          onsubmit="return confirmDelete('user', '<%= u.getUsername() %>')">
+                        <input type="hidden" name="username" value="<%= u.getUsername() %>">
+                        <button type="submit" class="action-btn delete-btn"
+                               <%= u.getUsername().equals(user.getUsername()) ? "disabled title='Cannot delete yourself'" : "" %>
+                        >Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <% }
+            } else { %>
+            <tr>
+                <td colspan="6">No users available.</td>
+            </tr>
+            <% } %>
+        </table>
     </div>
 </div>
 
@@ -248,6 +317,61 @@ function showTab(tabName) {
     
     // Activate the clicked tab
     event.currentTarget.classList.add("active");
+}
+
+function confirmDelete(type, name) {
+    return confirm("Are you sure you want to delete this " + type + ": " + name + "?");
+}
+
+function filterBooks() {
+    var input = document.getElementById("bookSearchInput");
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("booksTable");
+    var tr = table.getElementsByTagName("tr");
+    
+    for (var i = 1; i < tr.length; i++) {
+        var tdTitle = tr[i].getElementsByTagName("td")[0];
+        var tdAuthor = tr[i].getElementsByTagName("td")[1];
+        var tdGenre = tr[i].getElementsByTagName("td")[4];
+        
+        if (tdTitle && tdAuthor && tdGenre) {
+            var titleText = tdTitle.textContent || tdTitle.innerText;
+            var authorText = tdAuthor.textContent || tdAuthor.innerText;
+            var genreText = tdGenre.textContent || tdGenre.innerText;
+            
+            if (titleText.toUpperCase().indexOf(filter) > -1 || 
+                authorText.toUpperCase().indexOf(filter) > -1 ||
+                genreText.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+
+function filterUsers() {
+    var input = document.getElementById("userSearchInput");
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("usersTable");
+    var tr = table.getElementsByTagName("tr");
+    
+    for (var i = 1; i < tr.length; i++) {
+        var tdUsername = tr[i].getElementsByTagName("td")[0];
+        var tdEmail = tr[i].getElementsByTagName("td")[1];
+        
+        if (tdUsername && tdEmail) {
+            var usernameText = tdUsername.textContent || tdUsername.innerText;
+            var emailText = tdEmail.textContent || tdEmail.innerText;
+            
+            if (usernameText.toUpperCase().indexOf(filter) > -1 || 
+                emailText.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
 }
 </script>
 

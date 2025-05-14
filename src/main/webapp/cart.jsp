@@ -164,12 +164,13 @@
         </table>
         
         <div class="cart-summary">
-            <div class="total">Total: $<%= String.format("%.2f", cart.getTotalPrice()) %></div>
-            <div>
-                <a href="home.jsp" class="continue-shopping">Continue Shopping</a>
-                <button class="checkout-btn">Proceed to Checkout</button>
-            </div>
-        </div>
+    <div class="total">Total: $<%= String.format("%.2f", cart.getTotalPrice()) %></div>
+    <div>
+        <a href="home.jsp" class="continue-shopping">Continue Shopping</a>
+        <a href="checkout.jsp" class="checkout-btn">Proceed to Checkout</a>
+    </div>
+</div>
+
     <% } %>
 </div>
 </body>

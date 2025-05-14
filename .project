@@ -30,9 +30,19 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>src/main/webapp/WEB-INF/lib/activation-1.1.jar</name>
+			<type>1</type>
+			<location>C:/Users/pc/Downloads/activation-1.1.jar</location>
+		</link>
+		<link>
 			<name>src/main/webapp/WEB-INF/lib/derby.jar</name>
 			<type>1</type>
-			<location>/home/mesbah/Downloads/derby.jar</location>
+			<location>C:/Users/pc/Downloads/derby.jar</location>
+		</link>
+		<link>
+			<name>src/main/webapp/WEB-INF/lib/javax.mail.jar</name>
+			<type>1</type>
+			<location>C:/Users/pc/Downloads/javax.mail.jar</location>
 		</link>
 	</linkedResources>
 </projectDescription>
