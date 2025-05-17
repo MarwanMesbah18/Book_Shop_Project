@@ -266,6 +266,39 @@ public class DB {
         }
         return usersList;
     }
+    public static boolean updateUser(String originalUsername, User updatedUser) {
+        try {
+            // First delete the original user
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            java.sql.Connection con = java.sql.DriverManager.getConnection(
+                "jdbc:derby:" + System.getProperty("catalina.base", System.getProperty("user.home")) + 
+                "/bookshop_db" + ";create=true");
+            
+            // Delete the existing user
+            java.sql.PreparedStatement pst = con.prepareStatement("DELETE FROM USERS WHERE username=?");
+            pst.setString(1, originalUsername);
+            pst.executeUpdate();
+            pst.close();
+            
+            // Add the updated user
+            pst = con.prepareStatement("INSERT INTO USERS VALUES(?,?,?,?,?,?)");
+            pst.setString(1, updatedUser.getUsername());
+            pst.setString(2, updatedUser.getEmail());
+            pst.setString(3, updatedUser.getPassword());
+            pst.setString(4, updatedUser.getPhoneNumber());
+            pst.setString(5, updatedUser.getAddress());
+            pst.setString(6, updatedUser.getUserType());
+            
+            int result = pst.executeUpdate();
+            pst.close();
+            con.close();
+            
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
 
 }

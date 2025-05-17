@@ -67,7 +67,7 @@
         color: var(--secondary-color);
     }
     
-    .logout-btn {
+    .logout-btn, .login-btn {
         background: none;
         border: none;
         color: white;
@@ -251,6 +251,34 @@
         height: 1rem;
     }
     
+    .login-message {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-top: 1rem;
+        text-align: center;
+    }
+    
+    .login-message p {
+        margin-bottom: 0.75rem;
+    }
+    
+    .login-btn-checkout {
+        background-color: var(--secondary-color);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .login-btn-checkout:hover {
+        background-color: #2980b9;
+    }
+    
     @media (max-width: 768px) {
         .header {
             flex-direction: column;
@@ -289,10 +317,7 @@
 <body>
 <%
     User user = (User) session.getAttribute("user");
-    if (user == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
+    // Removed redirect to allow guests to view cart
     
     ShoppingCart cart = (ShoppingCart) session.getAttribute("cart");
     if (cart == null) {
@@ -306,7 +331,24 @@
 <div class="header">
     <h1>Shopping Cart</h1>
     <div class="user-nav">
-        <span>Welcome, <%= user.getUsername() %>!</span>
+        <% if (user != null) { %>
+            <span>Welcome, <%= user.getUsername() %>!</span>
+          
+            <form class="logout-form" action="LogoutServlet" method="post">
+                <button type="submit" class="logout-btn">
+                    <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </form>
+        <% } else { %>
+            <span>Welcome, Guest!</span>
+            <a href="login.jsp" class="nav-link">Login</a>
+            <a href="register.jsp" class="nav-link">Register</a>
+        <% } %>
         <a href="home.jsp" class="nav-link">
             <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -314,16 +356,6 @@
             </svg>
             Home
         </a>
-        <form class="logout-form" action="LogoutServlet" method="post">
-            <button type="submit" class="logout-btn">
-                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                Logout
-            </button>
-        </form>
     </div>
 </div>
 
@@ -393,15 +425,24 @@
                     </svg>
                     Continue Shopping
                 </a>
-                <a href="checkout.jsp" class="checkout-btn">
-                    <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"></path>
-                        <path d="M12 5l7 7-7 7"></path>
-                    </svg>
-                    Proceed to Checkout
-                </a>
+                <% if(user != null) { %>
+                    <a href="checkout.jsp" class="checkout-btn">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                        Proceed to Checkout
+                    </a>
+                <% } %>
             </div>
         </div>
+        
+        <% if(user == null) { %>
+            <div class="login-message">
+                <p>You must login first to proceed to checkout</p>
+                <a href="login.jsp?redirectTo=cart.jsp" class="login-btn-checkout">Login to Continue</a>
+            </div>
+        <% } %>
     <% } %>
 </div>
 </body>

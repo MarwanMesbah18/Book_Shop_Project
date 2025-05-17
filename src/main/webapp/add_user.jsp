@@ -168,58 +168,6 @@
         font-weight: 500;
     }
     
-    /* Verification button styles */
-    .verify-btn {
-        background-color: var(--secondary-color);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        font-size: 0.9rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        transition: var(--transition);
-        margin-top: 0.5rem;
-    }
-    
-    .verify-btn:hover {
-        background-color: #2980b9;
-    }
-    
-    .phone-input-group {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .phone-input-group input {
-        flex: 1;
-    }
-    
-    .verification-status {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        padding: 0.5rem;
-        border-radius: var(--border-radius);
-    }
-    
-    .verified {
-        color: var(--success-color);
-        background-color: rgba(39, 174, 96, 0.1);
-    }
-    
-    .not-verified {
-        color: var(--accent-color);
-        background-color: rgba(231, 76, 60, 0.1);
-    }
-    
-    /* Validation message styles */
-    .validation-message {
-        color: var(--accent-color);
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-        display: none;
-    }
-    
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .container {
@@ -249,10 +197,6 @@
         .cancel-btn, .submit-btn {
             width: 100%;
         }
-        
-        .phone-input-group {
-            flex-direction: column;
-        }
     }
 </style>
 </head>
@@ -278,7 +222,7 @@
 
 <div class="container">
     <h2 class="form-title">User Information</h2>
-    <form action="AddUserServlet" method="post" id="userForm">
+    <form action="AddUserServlet" method="post">
         <div class="form-group">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" class="form-control" required>
@@ -286,10 +230,7 @@
         
         <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" class="form-control" required
-                   pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                   title="Please enter a valid email address (e.g., user@example.com)">
-            <div id="emailValidation" class="validation-message">Please enter a valid email address</div>
+            <input type="email" id="email" name="email" class="form-control" required>
         </div>
         
         <div class="form-group">
@@ -299,17 +240,7 @@
         
         <div class="form-group">
             <label for="phoneNumber">Phone Number</label>
-            <div class="phone-input-group">
-                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" required 
-                       pattern="^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$"
-                       title="Please enter a valid phone number (e.g., 123-456-7890 or +1234567890)">
-                <button type="button" id="verifyPhoneBtn" class="verify-btn">Verify Phone</button>
-            </div>
-            <div id="phoneValidation" class="validation-message">Please enter a valid phone number</div>
-            <div id="verificationStatus" class="verification-status not-verified" style="display: none;">
-                Phone number not verified
-            </div>
-            <input type="hidden" id="isPhoneVerified" name="isPhoneVerified" value="false">
+            <input type="text" id="phoneNumber" name="phoneNumber" class="form-control" required>
         </div>
         
         <div class="form-group">
@@ -327,7 +258,7 @@
         
         <div class="btn-group">
             <a href="admin.jsp"><button type="button" class="cancel-btn">Cancel</button></a>
-            <button type="submit" class="submit-btn" id="submitBtn">Add User</button>
+            <button type="submit" class="submit-btn">Add User</button>
         </div>
     </form>
     
@@ -335,134 +266,5 @@
         <div class="error-message"><%= request.getAttribute("errorMessage") %></div>
     <% } %>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const emailInput = document.getElementById('email');
-        const emailValidation = document.getElementById('emailValidation');
-        const phoneNumberInput = document.getElementById('phoneNumber');
-        const phoneValidation = document.getElementById('phoneValidation');
-        const verifyPhoneBtn = document.getElementById('verifyPhoneBtn');
-        const verificationStatus = document.getElementById('verificationStatus');
-        const isPhoneVerified = document.getElementById('isPhoneVerified');
-        const submitBtn = document.getElementById('submitBtn');
-        const userForm = document.getElementById('userForm');
-        
-        // Email validation regex
-        function validateEmail(email) {
-            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return re.test(String(email).toLowerCase());
-        }
-        
-        // Phone number validation regex
-        function validatePhoneNumber(phone) {
-            const re = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
-            return re.test(phone);
-        }
-        
-        // Email validation
-        emailInput.addEventListener('input', function() {
-            if (emailInput.value.trim() === '') {
-                emailValidation.style.display = 'none';
-                return;
-            }
-            
-            if (!validateEmail(emailInput.value.trim())) {
-                emailValidation.style.display = 'block';
-            } else {
-                emailValidation.style.display = 'none';
-            }
-        });
-        
-        // Phone number validation
-        phoneNumberInput.addEventListener('input', function() {
-            verificationStatus.style.display = 'none';
-            isPhoneVerified.value = 'false';
-            
-            if (phoneNumberInput.value.trim() === '') {
-                phoneValidation.style.display = 'none';
-                return;
-            }
-            
-            if (!validatePhoneNumber(phoneNumberInput.value.trim())) {
-                phoneValidation.style.display = 'block';
-            } else {
-                phoneValidation.style.display = 'none';
-            }
-        });
-        
-        // Verify phone number button click handler
-        verifyPhoneBtn.addEventListener('click', function() {
-            const phoneNumber = phoneNumberInput.value.trim();
-            
-            if (!validatePhoneNumber(phoneNumber)) {
-                phoneValidation.style.display = 'block';
-                phoneNumberInput.focus();
-                return;
-            }
-            
-            // In a real application, you would send an OTP to the phone number here
-            // For this example, we'll simulate verification after a delay
-            
-            verifyPhoneBtn.disabled = true;
-            verifyPhoneBtn.textContent = 'Sending OTP...';
-            
-            // Simulate sending OTP (replace with actual API call)
-            setTimeout(function() {
-                // Simulate user entering OTP (in real app, you'd prompt the user)
-                const otp = prompt('Please enter the 6-digit OTP sent to your phone (for demo, enter 123456):');
-                
-                if (otp === '123456') {
-                    // Successful verification
-                    verificationStatus.textContent = 'Phone number verified!';
-                    verificationStatus.className = 'verification-status verified';
-                    isPhoneVerified.value = 'true';
-                    verificationStatus.style.display = 'block';
-                    
-                    alert('Phone number verified successfully!');
-                } else {
-                    // Failed verification
-                    verificationStatus.textContent = 'Verification failed. Please try again.';
-                    verificationStatus.className = 'verification-status not-verified';
-                    isPhoneVerified.value = 'false';
-                    verificationStatus.style.display = 'block';
-                    
-                    alert('Invalid OTP. Please try again.');
-                }
-                
-                verifyPhoneBtn.disabled = false;
-                verifyPhoneBtn.textContent = 'Verify Phone';
-            }, 1500);
-        });
-        
-        // Form submission handler
-        userForm.addEventListener('submit', function(e) {
-            let isValid = true;
-            
-            // Validate email
-            if (!validateEmail(emailInput.value.trim())) {
-                emailValidation.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate phone number
-            if (!validatePhoneNumber(phoneNumberInput.value.trim())) {
-                phoneValidation.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Check phone verification
-            if (isPhoneVerified.value === 'false') {
-                alert('Please verify your phone number before submitting the form.');
-                verifyPhoneBtn.scrollIntoView({ behavior: 'smooth' });
-                isValid = false;
-            }
-            
-            if (!isValid) {
-                e.preventDefault();
-            }
-        });
-    });
-</script>
 </body>
 </html>

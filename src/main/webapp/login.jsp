@@ -155,6 +155,10 @@
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
             
+            <!-- Hidden field to pass the redirect destination -->
+            <input type="hidden" name="redirectTo" value="<%= request.getParameter("redirectTo") != null ? request.getParameter("redirectTo") : "" %>">
+
+            
             <button type="submit" class="login-btn">Login</button>
         </form>
         

@@ -135,72 +135,43 @@
             font-size: 1.25rem;
         }
         
-        .payment-options {
-            margin-top: 2rem;
-        }
-        
-        .payment-method {
-            margin-bottom: 1.5rem;
-        }
-        
-        .payment-card {
-            background-color: white;
-            border: 1px solid #e0e0e0;
-            border-radius: var(--border-radius);
+        .payment-info {
             padding: 1.5rem;
-            margin-top: 1rem;
-            display: none;
-        }
-        
-        .payment-card.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--primary-color);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
             border: 1px solid #e0e0e0;
             border-radius: var(--border-radius);
-            font-size: 1rem;
-            transition: var(--transition);
+            background-color: var(--light-gray);
+            margin-bottom: 2rem;
         }
         
-        .form-control:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-        
-        .radio-option {
+        .payment-option {
             display: flex;
             align-items: center;
-            margin-bottom: 0.75rem;
-            cursor: pointer;
+            gap: 0.75rem;
+            padding: 1rem;
+            background-color: white;
+            border-radius: var(--border-radius);
         }
         
-        .radio-option input {
-            margin-right: 0.75rem;
+        .payment-icon {
+            background-color: var(--success-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .payment-description {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .payment-note {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
         }
         
         .checkout-btn {
@@ -213,9 +184,9 @@
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: block;
+            width: 100%;
+            text-align: center;
             margin-top: 1rem;
         }
         
@@ -223,16 +194,6 @@
             background-color: #219653;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(39, 174, 96, 0.2);
-        }
-        
-        .btn-icon {
-            width: 1rem;
-            height: 1rem;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         @media (max-width: 768px) {
@@ -254,11 +215,6 @@
                 transform: none;
                 margin-bottom: 1rem;
                 justify-content: center;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 0;
             }
         }
     </style>
@@ -331,65 +287,21 @@
         </table>
     </div>
     
-    <div class="payment-options">
-        <h2 class="section-title">Payment Method</h2>
-        
-        <form action="ConfirmOrderServlet" method="post">
-            <div class="payment-method">
-                <div class="radio-option">
-                    <input type="radio" id="visa" name="paymentMethod" value="visa" checked>
-                    <label for="visa">Credit/Debit Card</label>
-                </div>
-                
-                <div class="payment-card active" id="visa-details">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardNumber">Card Number</label>
-                            <input type="text" id="cardNumber" name="cardNumber" class="form-control" placeholder="1234 5678 9012 3456">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardName">Name on Card</label>
-                            <input type="text" id="cardName" name="cardName" class="form-control" placeholder="John Doe">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="expiryDate">Expiry Date</label>
-                            <input type="text" id="expiryDate" name="expiryDate" class="form-control" placeholder="MM/YY">
-                        </div>
-                        <div class="form-group">
-                            <label for="cvv">CVV</label>
-                            <input type="text" id="cvv" name="cvv" class="form-control" placeholder="123">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="radio-option">
-                    <input type="radio" id="cash" name="paymentMethod" value="cash">
-                    <label for="cash">Cash on Delivery</label>
-                </div>
+    <h2 class="section-title">Payment Method</h2>
+    
+    <div class="payment-info">
+        <div class="payment-option">
+            <div class="payment-icon">💵</div>
+            <div>
+                <p class="payment-description">Cash on Delivery</p>
+                <p class="payment-note">Pay when you receive your order</p>
             </div>
-            
-            <button type="submit" class="checkout-btn">
-                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5l7 7-7 7"></path>
-                </svg>
-                Confirm Order
-            </button>
-        </form>
+        </div>
     </div>
+    
+    <form action="ConfirmOrderServlet" method="post">
+        <button type="submit" class="checkout-btn">Confirm Order</button>
+    </form>
 </div>
-
-<script>
-    // Show/hide payment card details based on selection
-    document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.getElementById('visa-details').classList.toggle('active', this.value === 'visa');
-        });
-    });
-</script>
 </body>
 </html>

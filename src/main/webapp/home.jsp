@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="Clasess.User, Clasess.Books, Clasess.DB, Clasess.ShoppingCart, java.util.List, java.util.HashSet" %>
+<%@ page import="Clasess.User, Clasess.Books, Clasess.DB, Clasess.ShoppingCart, Clasess.CartItem, java.util.List, java.util.HashSet" %>
 
 <!DOCTYPE html>
 <html>
@@ -81,6 +81,22 @@
     
     .cart-link:hover {
         background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .login-btn {
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .login-btn:hover {
+        background-color: #2980b9;
     }
     
     .cart-icon {
@@ -243,6 +259,23 @@
         font-size: 0.9rem;
     }
     
+    .profile-link {
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        transition: var(--transition);
+        background-color: rgba(255, 255, 255, 0.1);
+        margin-right: 10px;
+    }
+
+    .profile-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    
     .book-genre {
         display: inline-block;
         background-color: #e0f2fe;
@@ -289,6 +322,11 @@
         background-color: green;
     }
     
+    .add-to-cart:disabled {
+        background-color: var(--dark-gray);
+        cursor: not-allowed;
+    }
+    
     .no-books {
         grid-column: 1 / -1;
         text-align: center;
@@ -320,19 +358,8 @@
 </head>
 <body>
 <%
-    List<Books> debugBooks = DB.getAllBooks();
-    out.println("<!-- DEBUG: Found " + debugBooks.size() + " books in database -->");
-    for (Books b : debugBooks) {
-        out.println("<!-- Book: " + b.getName() + ", Genre: " + b.getGenre() + " -->");
-    }
-%>
-
-<%
     User user = (User) session.getAttribute("user");
-    if (user == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
+    // Removed the redirect to login.jsp to allow non-logged in users to view the home page
     
     List<Books> booksList = DB.getAllBooks();
     String selectedGenre = request.getParameter("genre");
@@ -352,22 +379,37 @@
     for (Books book : booksList) {
         genres.add(book.getGenre());
     }
+    
+    // Get current shopping cart to check quantities
+    ShoppingCart cart = (ShoppingCart) session.getAttribute("cart");
 %>
 
 <div class="header">
     <div class="logo">Book<span>Shop</span></div>
     <div class="user-info">
-        <div class="welcome-message">Welcome, <%= user.getUsername() %>!</div>
-        <div class="user-actions">
-            <a href="cart.jsp" class="cart-link">
-                <span class="cart-icon">🛒</span>
-                Cart (<%= session.getAttribute("cart") != null ? 
-                     ((ShoppingCart)session.getAttribute("cart")).getTotalQuantity() : 0 %>)
-            </a>
-            <form class="logout-form" action="LogoutServlet" method="post">
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
-        </div>
+        <% if (user != null) { %>
+            <div class="welcome-message">Welcome, <%= user.getUsername() %>!</div>
+        <% } else { %>
+            <div class="welcome-message">Welcome, Guest!</div>
+        <% } %>
+<div class="user-actions">
+    <% if (user != null) { %>
+        <a href="profile.jsp" class="profile-link">My Profile</a>
+    <% } %>
+    <a href="cart.jsp" class="cart-link">
+        <span class="cart-icon">🛒</span>
+        Cart (<%= session.getAttribute("cart") != null ? 
+             ((ShoppingCart)session.getAttribute("cart")).getTotalQuantity() : 0 %>)
+    </a>
+    <% if (user != null) { %>
+        <form class="logout-form" action="LogoutServlet" method="post">
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    <% } else { %>
+        <a href="login.jsp" class="login-btn">Login</a>
+    <% } %>
+</div>
+
     </div>
 </div>
 
@@ -375,6 +417,7 @@
     <h1 class="page-title">Available Books</h1>
     
     <div class="filter-section">
+    
         <form action="home.jsp" method="get" class="filter-form">
             <div class="filter-group">
                 <label for="genre" class="filter-label">Filter by Genre</label>
@@ -398,7 +441,7 @@
             <button type="submit" class="apply-btn">Apply Filters</button>
         </form>
     </div>
-    
+    	
     <div class="book-container">
     <% 
     if(booksList != null && !booksList.isEmpty()) {
@@ -414,6 +457,18 @@
                                    book.getAuthor().toLowerCase().contains(searchQuery);
             
             if (matchesGenre && matchesSearch) {
+                // Check if the book is already in cart and how many
+                int quantityInCart = 0;
+                if (cart != null) {
+                    for (CartItem item : cart.getItems()) {
+                        if (item.getBook().getName().equals(book.getName())) {
+                            quantityInCart = item.getQuantity();
+                            break;
+                        }
+                    }
+                }
+                
+                boolean isMaxStock = quantityInCart >= book.getQuantity();
     %>
         <div class="book-card">
             <div class="book-image">📚</div>
@@ -423,11 +478,19 @@
                 <span class="book-genre"><%= book.getGenre() %></span>
                 <div class="book-meta">
                     <span class="book-price">$<%= String.format("%.2f", book.getPrice()) %></span>
-                    <span class="book-stock"><%= book.getQuantity() %> in stock</span>
+                    <span class="book-stock">
+                        <% if (quantityInCart > 0) { %>
+                            <%= book.getQuantity() - quantityInCart %> available (<%= quantityInCart %> in cart)
+                        <% } else { %>
+                            <%= book.getQuantity() %> in stock
+                        <% } %>
+                    </span>
                 </div>
                 <form action="AddToCartServlet" method="post">
                     <input type="hidden" name="bookName" value="<%= book.getName() %>">
-                    <button type="submit" class="add-to-cart">Add to Cart</button>
+                    <button type="submit" class="add-to-cart" <%= isMaxStock ? "disabled" : "" %>>
+                        <%= isMaxStock ? "Max Stock Reached" : "Add to Cart" %>
+                    </button>
                 </form>
             </div>
         </div>

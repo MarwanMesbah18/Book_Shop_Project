@@ -17,18 +17,20 @@ public class LoginServlet extends HttpServlet {
         // Get form parameters
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        String redirectTo = request.getParameter("redirectTo");
 
         // Verify credentials and retrieve user
         DB db = new DB();
         User user = db.getUserByCredentials(username, password);
 
         if (user != null) {
-            // Successful login - store user in session
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
 
-            // Redirect based on user type
-            if ("admin".equals(user.getUserType())) {
+            // Redirect to the specified page or default to home.jsp
+            if (redirectTo != null && !redirectTo.isEmpty()) {
+                response.sendRedirect(redirectTo);
+            } else if ("admin".equals(user.getUserType())) {
                 response.sendRedirect("admin.jsp");
             } else {
                 response.sendRedirect("home.jsp");
@@ -36,6 +38,7 @@ public class LoginServlet extends HttpServlet {
         } else {
             // Failed login - return to login page with error
             request.setAttribute("errorMessage", "Invalid username or password");
+            request.setAttribute("redirectTo", redirectTo);
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
