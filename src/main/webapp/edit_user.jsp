@@ -79,6 +79,11 @@
 </div>
 
 <div class="container">
+	 <% if(request.getAttribute("errorMessage") != null) { %>
+        <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+            <%= request.getAttribute("errorMessage") %>
+        </div>
+    <% } %>
     <form action="EditUserServlet" method="post">
         <input type="hidden" name="originalUsername" value="<%= editUser.getUsername() %>">
         

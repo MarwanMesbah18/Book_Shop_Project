@@ -52,6 +52,26 @@ public class EditUserServlet extends HttpServlet {
         String address = request.getParameter("address");
         String userType = request.getParameter("userType");
         
+        // Check if the email already exists for another user
+        if (DB.emailExists(email, originalUsername)) {
+            // Email already exists for another user
+            // Get the user details to repopulate the form
+            List<User> usersList = DB.getAllUsers();
+            User editUser = null;
+            
+            for (User u : usersList) {
+                if (u.getUsername().equals(originalUsername)) {
+                    editUser = u;
+                    break;
+                }
+            }
+            
+            request.setAttribute("editUser", editUser);
+            request.setAttribute("errorMessage", "Email already in use by another user.");
+            request.getRequestDispatcher("edit_user.jsp").forward(request, response);
+            return;
+        }
+        
         // Delete old user record
         deleteUser(originalUsername);
         

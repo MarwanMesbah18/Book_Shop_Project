@@ -299,6 +299,57 @@ public class DB {
             return false;
         }
     }
+    
+    public static boolean emailExists(String email) {
+        try {
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            java.sql.Connection con = java.sql.DriverManager.getConnection(
+                "jdbc:derby:" + System.getProperty("catalina.base", System.getProperty("user.home")) + 
+                "/bookshop_db" + ";create=true");
+            
+            java.sql.PreparedStatement pst = con.prepareStatement("SELECT COUNT(*) FROM USERS WHERE email=?");
+            pst.setString(1, email);
+            java.sql.ResultSet rs = pst.executeQuery();
+            
+            if (rs.next() && rs.getInt(1) > 0) {
+                return true;
+            }
+            
+            rs.close();
+            pst.close();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
+    // Overloaded method to exclude a specific username when checking
+    public static boolean emailExists(String email, String excludeUsername) {
+        try {
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            java.sql.Connection con = java.sql.DriverManager.getConnection(
+                "jdbc:derby:" + System.getProperty("catalina.base", System.getProperty("user.home")) + 
+                "/bookshop_db" + ";create=true");
+            
+            java.sql.PreparedStatement pst = con.prepareStatement(
+                "SELECT COUNT(*) FROM USERS WHERE email=? AND username<>?");
+            pst.setString(1, email);
+            pst.setString(2, excludeUsername);
+            java.sql.ResultSet rs = pst.executeQuery();
+            
+            if (rs.next() && rs.getInt(1) > 0) {
+                return true;
+            }
+            
+            rs.close();
+            pst.close();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
 
 }

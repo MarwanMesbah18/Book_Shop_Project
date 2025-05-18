@@ -1,11 +1,15 @@
 package Clasess;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
@@ -21,19 +25,51 @@ public class RegisterServlet extends HttpServlet {
         String address = request.getParameter("address");
         String userType = request.getParameter("userType");
         
-        // Create user
-        User user = new User(username, email, password, phoneNumber, address, userType);
+        // Check if email already exists
+        if (DB.emailExists(email)) {
+            request.setAttribute("errorMessage", "Email already in use. Please use a different email.");
+            request.getRequestDispatcher("register.jsp").forward(request, response);
+            return;
+        }
         
-        // Add user to database
-        int result = DB.add_user(user);
+        // Generate verification code
+        String verificationCode = generateVerificationCode();
         
-        if (result > 0) {
-            // Success - redirect to login page
-            response.sendRedirect("login.jsp");
-        } else {
-            // Failed - return to register page with error
-            request.setAttribute("errorMessage", "Registration failed. Username may already exist.");
+        // Store user data and verification code in session
+        HttpSession session = request.getSession();
+        session.setAttribute("verificationCode", verificationCode);
+        
+        Map<String, String> userData = new HashMap<>();
+        userData.put("username", username);
+        userData.put("email", email);
+        userData.put("password", password);
+        userData.put("phoneNumber", phoneNumber);
+        userData.put("address", address);
+        userData.put("userType", userType);
+        session.setAttribute("pendingUser", userData);
+        
+        try {
+            // Send verification email
+            String emailBody = "Welcome to BookShop!<br><br>"
+                    + "Your verification code is: <b>" + verificationCode + "</b><br><br>"
+                    + "Please enter this code on the verification page to complete your registration.<br><br>"
+                    + "If you didn't request this code, please ignore this email.";
+            
+            EmailUtility.sendEmail(email, "BookShop Email Verification", emailBody);
+            
+            // Redirect to verification page
+            response.sendRedirect("verify_email.jsp");
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Failed to send verification email. Please try again.");
             request.getRequestDispatcher("register.jsp").forward(request, response);
         }
+    }
+    
+    private String generateVerificationCode() {
+        // Generate random 6-digit code
+        Random random = new Random();
+        int code = 100000 + random.nextInt(900000);
+        return String.valueOf(code);
     }
 }
